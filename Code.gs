@@ -1,3 +1,6 @@
+var FOLDER_ID = '';
+var SPREADSHEET_ID = '';
+
 function remove_triggers() {
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
@@ -15,7 +18,7 @@ function make_trigger() {
 }
 
 function get_emails() {
-  var ss = SpreadsheetApp.openById('SPREADSHEET_ID');
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheets()[0];
   var range = sheet.getRange("B:B");
   var emails = [];
@@ -34,9 +37,14 @@ function main() {
   var url = doc.getPlainBody().split('\n')[3];
   
   var id = url.split('/')[5];
-  Logger.log(id);
   var file = DriveApp.getFileById(id);
-  var new_file = file.makeCopy('bot: '+file.getName(), DriveApp.getFolderById('FOLDER_ID'));
+  var doc_copy_folder = DriveApp.getFolderById(FOLDER_ID);
+  if(doc_copy_folder.getFilesByName('bot: ' + file.getName()).hasNext() || doc_copy_folder.getFilesByName(file.getName()).hasNext())  {
+    Logger.log('No new Daily Bulletin email found: ' + id);
+    return;
+  }
+  Logger.log('Processing: ' + id);
+  var new_file = file.makeCopy('bot: '+file.getName(), doc_copy_folder);
   var new_file_id = new_file.getId();
   var new_doc = DocumentApp.openById(new_file_id);
 
